@@ -1,6 +1,6 @@
 # Go Banking System (In Progress)
 
-A backend banking system built with Go, PostgreSQL, and Docker.
+Backend banking system built with Go, PostgreSQL, Docker, sqlc, and database migrations.
 
 ## Features (Planned)
 - Account creation
@@ -12,18 +12,8 @@ A backend banking system built with Go, PostgreSQL, and Docker.
 - Go (Golang)
 - PostgreSQL
 - Docker
+- sqlc
 - golang-migrate
 
-## Current Progress
-- Database containerized using Docker
-- Migration system implemented
-- Accounts table created
-- API layer in progress
-
-## Run Locally
-
-Start PostgreSQL:
-docker run --name postgres-banking -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=banking -p 5433:5432 -d postgres
-
-Run migrations:
-migrate -path migrations -database "postgres://admin:secret@localhost:5433/banking?sslmode=disable" up
+## Status
+🚧 In Progress – building core banking features
