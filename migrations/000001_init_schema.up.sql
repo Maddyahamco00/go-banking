@@ -1,0 +1,7 @@
+CREATE TABLE accounts (
+    id SERIAL PRIMARY KEY,
+    owner TEXT NOT NULL,
+    balance BIGINT NOT NULL,
+    currency TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
