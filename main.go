@@ -1,7 +1,30 @@
 package main
 
-import "fmt"
+import (
+	"database/sql"
+	"log"
+
+	_ "github.com/lib/pq"
+	"github.com/Maddyahamco00/go-banking/api"
+	db "github.com/Maddyahamco00/go-banking/db/sqlc"
+	"github.com/Maddyahamco00/go-banking/util"
+)
 
 func main() {
-    fmt.Println("Go Banking API starting...")
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
+	if err != nil {
+		log.Fatal("cannot connect to db:", err)
+	}
+
+	store := db.NewStore(conn)
+	server := api.NewServer(store)
+
+	if err = server.Start(config.ServerAddr); err != nil {
+		log.Fatal("cannot start server:", err)
+	}
 }
