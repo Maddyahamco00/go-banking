@@ -1,7 +1,9 @@
 CREATE TABLE accounts (
-    id SERIAL PRIMARY KEY,
-    owner TEXT NOT NULL,
-    balance BIGINT NOT NULL,
-    currency TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id         BIGSERIAL PRIMARY KEY,
+  owner      VARCHAR NOT NULL,
+  balance    BIGINT NOT NULL,
+  currency   VARCHAR NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX ON accounts (owner);
