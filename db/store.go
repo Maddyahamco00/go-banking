@@ -4,36 +4,34 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-
-	sqlc "github.com/Maddyahamco00/go-banking/db/sqlc"
 )
 
 type Store interface {
-	sqlc.Querier
+	Querier
 	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
 	DepositTx(ctx context.Context, arg DepositTxParams) (DepositTxResult, error)
 	WithdrawTx(ctx context.Context, arg WithdrawTxParams) (WithdrawTxResult, error)
 }
 
 type SQLStore struct {
-	*sqlc.Queries
+	*Queries
 	db *sql.DB
 }
 
 func NewStore(db *sql.DB) Store {
 	return &SQLStore{
 		db:      db,
-		Queries: sqlc.New(db),
+		Queries: New(db),
 	}
 }
 
-func (store *SQLStore) execTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	q := sqlc.New(tx)
+	q := New(tx)
 
 	err = fn(q)
 	if err != nil {
@@ -57,20 +55,20 @@ type TransferTxParams struct {
 }
 
 type TransferTxResult struct {
-	Transfer    sqlc.Transfer `json:"transfer"`
-	FromAccount sqlc.Account  `json:"from_account"`
-	ToAccount   sqlc.Account  `json:"to_account"`
-	FromEntry   sqlc.Entry    `json:"from_entry"`
-	ToEntry     sqlc.Entry    `json:"to_entry"`
+	Transfer    Transfer `json:"transfer"`
+	FromAccount Account  `json:"from_account"`
+	ToAccount   Account  `json:"to_account"`
+	FromEntry   Entry    `json:"from_entry"`
+	ToEntry     Entry    `json:"to_entry"`
 }
 
 func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
-	err := store.execTx(ctx, func(q *sqlc.Queries) error {
+	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		result.Transfer, err = q.CreateTransfer(ctx, sqlc.CreateTransferParams{
+		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,
 			ToAccountID:   arg.ToAccountID,
 			Amount:        arg.Amount,
@@ -79,7 +77,7 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 			return err
 		}
 
-		result.FromEntry, err = q.CreateEntry(ctx, sqlc.CreateEntryParams{
+		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
 			Amount:    -arg.Amount,
 		})
@@ -87,7 +85,7 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 			return err
 		}
 
-		result.ToEntry, err = q.CreateEntry(ctx, sqlc.CreateEntryParams{
+		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount,
 		})
@@ -125,17 +123,17 @@ type DepositTxParams struct {
 }
 
 type DepositTxResult struct {
-	Account sqlc.Account `json:"account"`
-	Entry   sqlc.Entry   `json:"entry"`
+	Account Account `json:"account"`
+	Entry   Entry   `json:"entry"`
 }
 
 func (store *SQLStore) DepositTx(ctx context.Context, arg DepositTxParams) (DepositTxResult, error) {
 	var result DepositTxResult
 
-	err := store.execTx(ctx, func(q *sqlc.Queries) error {
+	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		result.Entry, err = q.CreateEntry(ctx, sqlc.CreateEntryParams{
+		result.Entry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.AccountID,
 			Amount:    arg.Amount,
 		})
@@ -143,8 +141,8 @@ func (store *SQLStore) DepositTx(ctx context.Context, arg DepositTxParams) (Depo
 			return err
 		}
 
-		result.Account, err = q.UpdateAccountBalance(ctx, sqlc.UpdateAccountBalanceParams{
-			ID:     arg.AccountID,
+		result.Account, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+			ID:      arg.AccountID,
 			Balance: arg.Amount,
 		})
 
@@ -164,17 +162,17 @@ type WithdrawTxParams struct {
 }
 
 type WithdrawTxResult struct {
-	Account sqlc.Account `json:"account"`
-	Entry   sqlc.Entry   `json:"entry"`
+	Account Account `json:"account"`
+	Entry   Entry   `json:"entry"`
 }
 
 func (store *SQLStore) WithdrawTx(ctx context.Context, arg WithdrawTxParams) (WithdrawTxResult, error) {
 	var result WithdrawTxResult
 
-	err := store.execTx(ctx, func(q *sqlc.Queries) error {
+	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		result.Entry, err = q.CreateEntry(ctx, sqlc.CreateEntryParams{
+		result.Entry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.AccountID,
 			Amount:    -arg.Amount,
 		})
@@ -182,8 +180,8 @@ func (store *SQLStore) WithdrawTx(ctx context.Context, arg WithdrawTxParams) (Wi
 			return err
 		}
 
-		result.Account, err = q.UpdateAccountBalance(ctx, sqlc.UpdateAccountBalanceParams{
-			ID:     arg.AccountID,
+		result.Account, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+			ID:      arg.AccountID,
 			Balance: -arg.Amount,
 		})
 
@@ -199,21 +197,21 @@ func (store *SQLStore) WithdrawTx(ctx context.Context, arg WithdrawTxParams) (Wi
 
 func addMoney(
 	ctx context.Context,
-	q *sqlc.Queries,
+	q *Queries,
 	accountID1 int64, amount1 int64,
 	accountID2 int64, amount2 int64,
-) (account1 sqlc.Account, account2 sqlc.Account, err error) {
+) (account1 Account, account2 Account, err error) {
 
-	account1, err = q.UpdateAccountBalance(ctx, sqlc.UpdateAccountBalanceParams{
-		ID:     accountID1,
+	account1, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+		ID:      accountID1,
 		Balance: amount1,
 	})
 	if err != nil {
 		return
 	}
 
-	account2, err = q.UpdateAccountBalance(ctx, sqlc.UpdateAccountBalanceParams{
-		ID:     accountID2,
+	account2, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+		ID:      accountID2,
 		Balance: amount2,
 	})
 

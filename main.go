@@ -6,7 +6,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/Maddyahamco00/go-banking/api"
-	db "github.com/Maddyahamco00/go-banking/db/sqlc"
+	db "github.com/Maddyahamco00/go-banking/db"
 	"github.com/Maddyahamco00/go-banking/util"
 )
 
