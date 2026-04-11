@@ -1,8 +1,9 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	db "github.com/Maddyahamco00/go-banking/db"
+	"github.com/Maddyahamco00/go-banking/middleware"
+	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
@@ -21,7 +22,7 @@ func NewServer(store db.Store) *Server {
 	router.POST("/accounts/:id/deposit", server.deposit)
 	router.POST("/accounts/:id/withdraw", server.withdraw)
 
-	router.POST("/transfers", server.createTransfer)
+	router.POST("/transfers", middleware.IdempotencyMiddleware(), server.createTransfer)
 
 	router.GET("/accounts/:id/entries", server.listEntries)
 
