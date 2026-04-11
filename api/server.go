@@ -2,8 +2,11 @@ package api
 
 import (
 	db "github.com/Maddyahamco00/go-banking/db"
+	_ "github.com/Maddyahamco00/go-banking/docs"
 	"github.com/Maddyahamco00/go-banking/middleware"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Server struct {
@@ -25,6 +28,8 @@ func NewServer(store db.Store) *Server {
 	router.POST("/transfers", middleware.IdempotencyMiddleware(), server.createTransfer)
 
 	router.GET("/accounts/:id/entries", server.listEntries)
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	server.router = router
 	return server

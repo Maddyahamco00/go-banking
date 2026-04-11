@@ -1,13 +1,18 @@
+// @title Banking API
+// @version 1.0
+// @description This is a fintech API system
+// @host localhost:8080
+// @BasePath /
 package main
 
 import (
 	"database/sql"
 	"log"
 
-	_ "github.com/lib/pq"
 	"github.com/Maddyahamco00/go-banking/api"
 	db "github.com/Maddyahamco00/go-banking/db"
 	"github.com/Maddyahamco00/go-banking/util"
+	_ "github.com/lib/pq"
 )
 
 func main() {

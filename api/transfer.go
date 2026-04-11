@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	db "github.com/Maddyahamco00/go-banking/db"
+	"github.com/gin-gonic/gin"
 )
 
 type createTransferRequest struct {
@@ -18,6 +18,15 @@ type createTransferRequest struct {
 
 // ---------- LOGIC ----------
 
+// CreateTransfer godoc
+// @Summary Create transfer
+// @Description transfer funds from one account to another
+// @Tags transfers
+// @Accept json
+// @Produce json
+// @Param transfer body createTransferRequest true "Transfer Data"
+// @Success 200 {object} db.TransferTxResult
+// @Router /transfers [post]
 func (server *Server) createTransfer(ctx *gin.Context) {
 	var req createTransferRequest
 

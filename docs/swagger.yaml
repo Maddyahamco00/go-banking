@@ -1,0 +1,296 @@
+basePath: /
+definitions:
+  api.amountRequest:
+    properties:
+      amount:
+        type: integer
+    required:
+    - amount
+    type: object
+  api.createAccountRequest:
+    properties:
+      currency:
+        enum:
+        - USD
+        - EUR
+        - GBP
+        type: string
+      owner:
+        type: string
+    required:
+    - currency
+    - owner
+    type: object
+  api.createTransferRequest:
+    properties:
+      amount:
+        type: integer
+      currency:
+        enum:
+        - USD
+        - EUR
+        - GBP
+        type: string
+      from_account_id:
+        minimum: 1
+        type: integer
+      to_account_id:
+        minimum: 1
+        type: integer
+    required:
+    - amount
+    - currency
+    - from_account_id
+    - to_account_id
+    type: object
+  db.Account:
+    properties:
+      balance:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      owner:
+        type: string
+    type: object
+  db.DepositTxResult:
+    properties:
+      account:
+        $ref: '#/definitions/db.Account'
+      entry:
+        $ref: '#/definitions/db.Entry'
+    type: object
+  db.Entry:
+    properties:
+      account_id:
+        type: integer
+      amount:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+    type: object
+  db.Transfer:
+    properties:
+      amount:
+        type: integer
+      created_at:
+        type: string
+      from_account_id:
+        type: integer
+      id:
+        type: integer
+      to_account_id:
+        type: integer
+    type: object
+  db.TransferTxResult:
+    properties:
+      from_account:
+        $ref: '#/definitions/db.Account'
+      from_entry:
+        $ref: '#/definitions/db.Entry'
+      to_account:
+        $ref: '#/definitions/db.Account'
+      to_entry:
+        $ref: '#/definitions/db.Entry'
+      transfer:
+        $ref: '#/definitions/db.Transfer'
+    type: object
+  db.WithdrawTxResult:
+    properties:
+      account:
+        $ref: '#/definitions/db.Account'
+      entry:
+        $ref: '#/definitions/db.Entry'
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a fintech API system
+  title: Banking API
+  version: "1.0"
+paths:
+  /accounts:
+    get:
+      consumes:
+      - application/json
+      description: list all accounts with pagination
+      parameters:
+      - description: Page ID
+        in: query
+        name: page_id
+        required: true
+        type: integer
+      - description: Page Size
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/db.Account'
+            type: array
+      summary: List accounts
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      description: create a new user account
+      parameters:
+      - description: Account Data
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/api.createAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Account'
+      summary: Create account
+      tags:
+      - accounts
+  /accounts/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get account details by ID
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Account'
+      summary: Get account
+      tags:
+      - accounts
+  /accounts/{id}/deposit:
+    post:
+      consumes:
+      - application/json
+      description: deposit funds into an account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Deposit Amount
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/api.amountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.DepositTxResult'
+      summary: Deposit funds
+      tags:
+      - accounts
+  /accounts/{id}/entries:
+    get:
+      consumes:
+      - application/json
+      description: list account transaction entries with pagination
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Page ID
+        in: query
+        name: page_id
+        required: true
+        type: integer
+      - description: Page Size
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/db.Entry'
+            type: array
+      summary: List account entries
+      tags:
+      - accounts
+  /accounts/{id}/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: withdraw funds from an account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Withdraw Amount
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/api.amountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.WithdrawTxResult'
+      summary: Withdraw funds
+      tags:
+      - accounts
+  /transfers:
+    post:
+      consumes:
+      - application/json
+      description: transfer funds from one account to another
+      parameters:
+      - description: Transfer Data
+        in: body
+        name: transfer
+        required: true
+        schema:
+          $ref: '#/definitions/api.createTransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.TransferTxResult'
+      summary: Create transfer
+      tags:
+      - transfers
+swagger: "2.0"
