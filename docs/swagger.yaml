@@ -1,0 +1,444 @@
+definitions:
+  domain.AccountStatus:
+    enum:
+    - active
+    - suspended
+    - closed
+    type: string
+    x-enum-varnames:
+    - AccountStatusActive
+    - AccountStatusSuspended
+    - AccountStatusClosed
+  domain.Tier:
+    enum:
+    - tier1
+    - tier2
+    type: string
+    x-enum-varnames:
+    - Tier1
+    - Tier2
+  domain.Transaction:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      error_message:
+        type: string
+      from_account_id:
+        type: string
+      id:
+        type: string
+      idempotency_key:
+        type: string
+      metadata:
+        additionalProperties: {}
+        type: object
+      status:
+        $ref: '#/definitions/domain.TransactionStatus'
+      to_account_id:
+        type: string
+      transaction_ref:
+        type: string
+      type:
+        $ref: '#/definitions/domain.TransactionType'
+      updated_at:
+        type: string
+    type: object
+  domain.TransactionStatus:
+    enum:
+    - pending
+    - completed
+    - failed
+    type: string
+    x-enum-varnames:
+    - TransactionStatusPending
+    - TransactionStatusCompleted
+    - TransactionStatusFailed
+  domain.TransactionType:
+    enum:
+    - transfer
+    - escrow_hold
+    - escrow_release
+    - loan_disbursement
+    - loan_repayment
+    type: string
+    x-enum-varnames:
+    - TransactionTypeTransfer
+    - TransactionTypeEscrowHold
+    - TransactionTypeEscrowRelease
+    - TransactionTypeLoanDisbursement
+    - TransactionTypeLoanRepayment
+  domain.WalletDetails:
+    properties:
+      account_id:
+        type: string
+      account_status:
+        $ref: '#/definitions/domain.AccountStatus'
+      balance:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      owner_id:
+        type: string
+      status:
+        type: string
+      tier:
+        $ref: '#/definitions/domain.Tier'
+    type: object
+  handler.CreateWalletRequest:
+    properties:
+      currency:
+        type: string
+      owner_id:
+        type: string
+    required:
+    - owner_id
+    type: object
+  handler.FundWalletRequest:
+    properties:
+      amount:
+        type: string
+      description:
+        type: string
+      idempotency_key:
+        type: string
+    required:
+    - amount
+    type: object
+  response.APIResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+info:
+  contact: {}
+paths:
+  /admin/loans:
+    get:
+      description: Get all loans with pagination
+      parameters:
+      - default: 20
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List all loans (admin)
+      tags:
+      - Admin
+  /admin/transactions:
+    get:
+      description: Get all transactions with pagination
+      parameters:
+      - default: 20
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List all transactions (admin)
+      tags:
+      - Admin
+  /admin/wallets:
+    get:
+      description: Get all wallets with pagination
+      parameters:
+      - default: 20
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List all wallets (admin)
+      tags:
+      - Admin
+  /health:
+    get:
+      description: Check if the API is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      summary: Health check
+      tags:
+      - Health
+  /wallet/{owner_id}:
+    get:
+      description: Get wallet details by owner ID
+      parameters:
+      - description: Owner ID
+        in: path
+        name: owner_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.WalletDetails'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get wallet details
+      tags:
+      - Wallet
+  /wallet/{owner_id}/ledger:
+    get:
+      description: Get ledger entries for a wallet (audit trail)
+      parameters:
+      - description: Owner ID
+        in: path
+        name: owner_id
+        required: true
+        type: string
+      - default: 20
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get wallet ledger entries
+      tags:
+      - Wallet
+  /wallet/{owner_id}/transactions:
+    get:
+      description: Get transaction history for a wallet
+      parameters:
+      - description: Owner ID
+        in: path
+        name: owner_id
+        required: true
+        type: string
+      - default: 20
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Transaction'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get wallet transactions
+      tags:
+      - Wallet
+  /wallet/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new wallet for a user
+      parameters:
+      - description: Wallet creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.WalletDetails'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new wallet
+      tags:
+      - Wallet
+  /wallet/fund:
+    post:
+      consumes:
+      - application/json
+      description: Add funds to a wallet (from external source)
+      parameters:
+      - description: Fund request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.FundWalletRequest'
+      - description: Idempotency key
+        in: header
+        name: X-Idempotency-Key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Transaction'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Fund a wallet
+      tags:
+      - Wallet
+swagger: "2.0"

@@ -1,0 +1,28 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  name: "finance_db"
+  max_open_conns: 25
+  max_idle_conns: 5
+
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret:  "049709c7ffa668ae92703284ec6e5a737b5484ecae1ec5fa2c9ff6c16c2cbbdd"
+  expiry_hours: 24
+
+hmac:
+  secret: "99eef0db41a8ed92e225c4e7e39857fd3c3ef01748c13e3528590818be78b015"
+
+rate_limit:
+  requests_per_min: 100

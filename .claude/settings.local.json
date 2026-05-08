@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go get github.com/swaggo/swag/cmd/swag@v1.8.12 github.com/swaggo/gin-swagger@v1.6.0 github.com/swaggo/files@v1.0.0)",
+      "Bash(go get github.com/swaggo/swag/cmd/swag@v1.8.12 github.com/swaggo/gin-swagger@v1.6.0 github.com/swaggo/files@v1.0.1)",
+      "Bash(go build ./...)",
+      "Bash(go install github.com/swaggo/swag/cmd/swag@v1.8.12)"
+    ]
+  }
+}
