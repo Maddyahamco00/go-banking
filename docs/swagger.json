@@ -1,8 +1,16 @@
 {
+    "schemes": [
+        "http",
+        "https"
+    ],
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "Banking service API with wallet management, transactions, and ledger",
+        "title": "Go Banking API",
+        "contact": {},
+        "version": "1.0"
     },
+    "basePath": "/api/v1",
     "paths": {
         "/admin/loans": {
             "get": {
@@ -692,6 +700,14 @@
                     "type": "boolean"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Provide your JWT as: `Authorization: Bearer \u003ctoken\u003e`",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

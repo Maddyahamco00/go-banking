@@ -1,3 +1,4 @@
+basePath: /api/v1
 definitions:
   domain.AccountStatus:
     enum:
@@ -128,6 +129,9 @@ definitions:
     type: object
 info:
   contact: {}
+  description: Banking service API with wallet management, transactions, and ledger
+  title: Go Banking API
+  version: "1.0"
 paths:
   /admin/loans:
     get:
@@ -441,4 +445,13 @@ paths:
       summary: Fund a wallet
       tags:
       - Wallet
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: 'Provide your JWT as: `Authorization: Bearer <token>`'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

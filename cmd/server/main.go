@@ -1,14 +1,19 @@
 package main
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Provide your JWT as: `Authorization: Bearer <token>`
+
 import (
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/joho/godotenv"
 
 	_ "go-banking/docs"
 
