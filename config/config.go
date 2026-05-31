@@ -1,13 +1,14 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
-type AppConfig struct {
+type Config struct {
 	AppName string
 	AppEnv  string
 	AppPort int
@@ -22,61 +23,90 @@ type AppConfig struct {
 	LogLevel string
 }
 
-func Load() (AppConfig, error) {
-	getString := func(key, def string) string {
-		if v := strings.TrimSpace(os.Getenv(key)); v != "" {
-			return v
-		}
-		return def
+func Load() (Config, error) {
+	getEnv := func(key string) (string, bool) {
+		v, ok := os.LookupEnv(key)
+		return v, ok
 	}
 
-	getInt := func(key string, def int) (int, error) {
-		v := strings.TrimSpace(os.Getenv(key))
-		if v == "" {
-			return def, nil
+	require := func(key string) (string, error) {
+		v, ok := getEnv(key)
+		if !ok || strings.TrimSpace(v) == "" {
+			return "", fmt.Errorf("missing required env var %s", key)
 		}
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			return 0, fmt.Errorf("%s must be int: %w", key, err)
-		}
-		return i, nil
+		return v, nil
 	}
 
-	appPort, err := getInt("APP_PORT", 8080)
+	// App
+	appName, err := require("APP_NAME")
 	if err != nil {
-		return AppConfig{}, err
+		return Config{}, err
 	}
-	if appPort <= 0 || appPort > 65535 {
-		return AppConfig{}, fmt.Errorf("APP_PORT out of range")
-	}
-
-	dbPort, err := getInt("DB_PORT", 5432)
+	appEnv, err := require("APP_ENV")
 	if err != nil {
-		return AppConfig{}, err
-	}
-	if dbPort <= 0 || dbPort > 65535 {
-		return AppConfig{}, fmt.Errorf("DB_PORT out of range")
+		return Config{}, err
 	}
 
-	cfg := AppConfig{
-		AppName:     getString("APP_NAME", "gobanking-v2"),
-		AppEnv:      getString("APP_ENV", "development"),
-		AppPort:     appPort,
-		DBHost:      getString("DB_HOST", "localhost"),
-		DBPort:      dbPort,
-		DBName:      getString("DB_NAME", "gobanking"),
-		DBUser:      getString("DB_USER", "postgres"),
-		DBPassword:  getString("DB_PASSWORD", "postgres"),
-		DBSSLMode:   getString("DB_SSLMODE", "disable"),
-		LogLevel:    strings.ToLower(getString("LOG_LEVEL", "info")),
+	appPortStr, ok := getEnv("APP_PORT")
+	if !ok || strings.TrimSpace(appPortStr) == "" {
+		appPortStr = "8080"
+	}
+	appPort, err := strconv.Atoi(appPortStr)
+	if err != nil {
+		return Config{}, errors.New("APP_PORT must be an integer")
 	}
 
-	// minimal validation for required envs in production
-	if cfg.AppEnv == "production" {
-		if strings.TrimSpace(cfg.DBPassword) == "" {
-			return AppConfig{}, fmt.Errorf("DB_PASSWORD is required in production")
-		}
+	// DB
+	dbHost, err := require("DB_HOST")
+	if err != nil {
+		return Config{}, err
+	}
+	// Optional: keep DB_PORT default for local/dev.
+	dbPortStr, ok := getEnv("DB_PORT")
+	if !ok || strings.TrimSpace(dbPortStr) == "" {
+		dbPortStr = "5432"
+	}
+	dbPort, err := strconv.Atoi(dbPortStr)
+	if err != nil {
+		return Config{}, errors.New("DB_PORT must be an integer")
 	}
 
-	return cfg, nil
+	dbName, err := require("DB_NAME")
+	if err != nil {
+		return Config{}, err
+	}
+	dbUser, err := require("DB_USER")
+	if err != nil {
+		return Config{}, err
+	}
+	dbPassword, err := require("DB_PASSWORD")
+	if err != nil {
+		return Config{}, err
+	}
+	dbSSLMode, ok := getEnv("DB_SSLMODE")
+	if !ok || strings.TrimSpace(dbSSLMode) == "" {
+		dbSSLMode = "disable"
+	}
+
+	// Logging
+	logLevel, ok := getEnv("LOG_LEVEL")
+	if !ok || strings.TrimSpace(logLevel) == "" {
+		logLevel = "info"
+	}
+
+	return Config{
+		AppName: appName,
+		AppEnv:  appEnv,
+		AppPort: appPort,
+
+		DBHost:     dbHost,
+		DBPort:     dbPort,
+		DBName:     dbName,
+		DBUser:     dbUser,
+		DBPassword: dbPassword,
+		DBSSLMode:  dbSSLMode,
+
+		LogLevel: logLevel,
+	}, nil
 }
+
