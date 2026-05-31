@@ -50,6 +50,7 @@ func (a *App) Run(ctx context.Context, handler http.Handler) error {
 		defer cancel()
 		_ = a.httpSrv.Shutdown(shutdownCtx)
 		_ = a.db.Close()
+
 		a.lg.Info("shutdown_complete")
 		return nil
 	case err := <-errCh:

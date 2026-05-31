@@ -5,9 +5,10 @@
 - [ ] Implement PostgreSQL pool integration (pgxpool)
 - [ ] Implement app wiring (server start/stop)
 - [ ] Implement GET /health endpoint
-- [ ] Add Dockerfile + docker-compose.yml
-- [ ] Add migrations folder + golang-migrate migrate commands
-- [ ] Add graceful shutdown details (timeouts, DB close verification)
+- [x] Add Dockerfile + docker-compose.yml
+- [x] Add migrations folder + golang-migrate migrate commands
+- [x] Add graceful shutdown (SIGINT/SIGTERM, HTTP shutdown, DB close)
 - [ ] Add tests (unit tests for config and health)
 - [ ] Run `go test ./...`
+
 

@@ -30,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	sugar := lg.Named("main")
+	sugar := lg
 	sugar.Info("startup",
 		zap.String("app_name", cfg.AppName),
 		zap.String("app_env", cfg.AppEnv),

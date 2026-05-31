@@ -49,7 +49,7 @@ func NewPool(cfg config.Config) (*Pool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := p.Ping(ctx); err != nil {
-		_ = p.Close()
+		p.Close()
 		return nil, err
 	}
 
@@ -60,7 +60,9 @@ func (p *Pool) Close() error {
 	if p == nil || p.pool == nil {
 		return nil
 	}
-	return p.pool.Close()
+	p.pool.Close()
+	return nil
+
 }
 
 func (p *Pool) Ping(ctx context.Context) error {
@@ -68,4 +70,3 @@ func (p *Pool) Ping(ctx context.Context) error {
 }
 
 var _ = time.Second
-
