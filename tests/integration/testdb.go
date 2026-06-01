@@ -147,11 +147,11 @@ func OpenTestDB() (*postgres.Pool, error) {
 		return nil, err
 	}
 
-	// postgres.Pool wraps pgxpool.Pool, but its internal field is unexported.
-	// For now, return nil wrapper and rely on pgxpool directly from cleanup.
-	// This helper is scaffolded; once cleanup/migrations are integrated properly,
-	// we can refactor postgres.Pool to expose an accessor.
-	return nil, fmt.Errorf("OpenTestDB not implemented: cannot construct postgres.Pool (unexported field)")
+	// Wrap pgx pool using the postgres package exported helper.
+	// This keeps integration tests coupled only to the pool lifecycle, not to internals.
+	pp := postgres.NewPoolFromPGX(p)
+	_ = appCfg
+	return pp, nil
 }
 
 // CleanupAll truncates all user tables in public schema.

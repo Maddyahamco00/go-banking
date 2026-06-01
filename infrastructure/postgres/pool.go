@@ -15,6 +15,13 @@ type Pool struct {
 	pool *pgxpool.Pool
 }
 
+// NewPoolFromPGX wraps an existing pgxpool.Pool.
+// Architectural decision: keep the internal field unexported for production encapsulation,
+// but expose a narrow constructor so integration tests can reuse the same pool creation logic.
+func NewPoolFromPGX(p *pgxpool.Pool) *Pool {
+	return &Pool{pool: p}
+}
+
 func NewPool(cfg config.Config) (*Pool, error) {
 	// pgx uses URL-encoded DSN.
 	// Trade-off: using a URL DSN avoids manual escaping.
